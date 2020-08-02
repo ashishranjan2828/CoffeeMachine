@@ -37,20 +37,14 @@ public class DisplayService {
     public void displayResponse(Response response){
 
         if(response.getBeverageStatus().getPrepared()){
-            System.out.println("beverage: " + response.getBeverageStatus().getBeverageName() + " is ready, pls take from counter");
-        } else {
-            System.out.println("unable to process beverage " + response.getBeverageStatus().getBeverageName());
+            System.out.println(response.getBeverageStatus().getBeverageName() + " is prepared");
+        } else if(response.getBeverageStatus().isIngredientAvailable()){
+            System.out.println(response.getBeverageStatus().getBeverageName() + " cannot be prepared because " +
+                    response.getBeverageStatus().getIngredient() + " is not sufficient");
+        } else{
+            System.out.println(response.getBeverageStatus().getBeverageName() + " cannot be prepared because " +
+                    response.getBeverageStatus().getIngredient() + " is not available");
         }
     }
 
-
-    public void displayResponse(List<Response> response){
-        List<Response> processedResponse = response.stream()
-                .filter(response1 -> response1.getBeverageStatus().getPrepared()).collect(Collectors.toList());
-        List<Response> unprocessedResponse = response.stream()
-                .filter(response1 -> !response1.getBeverageStatus().getPrepared()).collect(Collectors.toList());
-
-        processedResponse.forEach(x -> displayResponse(x));
-        unprocessedResponse.forEach(x -> displayResponse(x));
-    }
 }

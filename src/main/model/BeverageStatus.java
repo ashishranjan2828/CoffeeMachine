@@ -4,9 +4,14 @@ public class BeverageStatus {
     String beverageName;
     Boolean isPrepared;
 
-    public BeverageStatus(String beverageName, Boolean isPrepared) {
+    String ingredient;
+    boolean isIngredientAvailable;
+
+    public BeverageStatus(String beverageName, Boolean isPrepared, String ingredient, boolean isIngredientAvailable) {
         this.beverageName = beverageName;
         this.isPrepared = isPrepared;
+        this.ingredient = ingredient;
+        this.isIngredientAvailable = isIngredientAvailable;
     }
 
     public String getBeverageName() {
@@ -25,11 +30,20 @@ public class BeverageStatus {
         isPrepared = prepared;
     }
 
-    @Override
-    public String toString() {
-        return "BeverageStatus{" +
-                "beverageName='" + beverageName + '\'' +
-                ", isPrepared=" + isPrepared +
-                '}';
+    public String getIngredient() {
+        return ingredient;
     }
+
+    public void setIngredient(String ingredient) {
+        this.ingredient = ingredient;
+    }
+
+    public boolean isIngredientAvailable() {
+        return isIngredientAvailable;
+    }
+
+    public void setIngredientAvailable(boolean ingredientAvailable) {
+        isIngredientAvailable = ingredientAvailable;
+    }
+
 }

@@ -1,6 +1,7 @@
 package outlet;
 
 import beverage.BeverageService;
+import display.DisplayService;
 import ingredient.IngredientService;
 import model.BeverageStatus;
 import model.Beverages;
@@ -10,14 +11,13 @@ import model.Response;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 /**
  * It is a single unit task which is performed in the outlet thread pool
  * This task has the business logic of serving the beverages
  */
 
-public class OutletTask implements Callable<Response> {
+public class OutletTask implements Runnable {
     private String outletId;
     private String beverageId;
     private final List<String> sharedIngredientListInOutlet;
@@ -37,33 +37,35 @@ public class OutletTask implements Callable<Response> {
     }
 
     @Override
-    public Response call() {
+    public void run() {
         Response response;
 
         Beverages beverageDetail = BeverageService.getInstance().getBeverageDetails(beverageId);
         List<Ingredients> beverageIngredientsList = beverageDetail.getIngredientsList();
 
         synchronized (sharedIngredientListInOutlet){
-            boolean isOkToMake = true;
             Map<String, Ingredients> outletIngredientsMap = new HashMap<>();
+            String ingredientShortage = null;
+            boolean isIngredientAvailable = true;
             for(Ingredients beverageIngredient :  beverageIngredientsList){
                 Ingredients ingredientInOutlet = IngredientService.getInstance().getIngredients(beverageIngredient.getIngredientsId());
 
                 if(ingredientInOutlet==null){
-                    isOkToMake = false;
+                    ingredientShortage = beverageIngredient.getIngredientsName();
+                    isIngredientAvailable = false;
                     break;
                 }
 
-                if(ingredientInOutlet.getQuantity() < beverageIngredient.getQuantity()){
-                    isOkToMake = false;
-                    break;
+                if(ingredientInOutlet.getQuantity() < beverageIngredient.getQuantity() && ingredientShortage==null){
+                    ingredientShortage = beverageIngredient.getIngredientsName();
                 }
 
                 outletIngredientsMap.put(ingredientInOutlet.getIngredientsName(), ingredientInOutlet);
             }
 
-            if(!isOkToMake){
-                response = new Response(outletId, new BeverageStatus(beverageDetail.getBeverageName(), false));
+            if(ingredientShortage!=null){
+                response = new Response(outletId, new BeverageStatus(beverageDetail.getBeverageName(), false,
+                        ingredientShortage, isIngredientAvailable));
             } else {
 
                 for(Ingredients beverageIngredient : beverageIngredientsList){
@@ -72,10 +74,11 @@ public class OutletTask implements Callable<Response> {
                     IngredientService.getInstance().updateIngredients(ingredient);
                 }
 
-                response = new Response(outletId, new BeverageStatus(beverageDetail.getBeverageName(), true));
+                response = new Response(outletId, new BeverageStatus(beverageDetail.getBeverageName(), true,
+                        ingredientShortage, isIngredientAvailable));
             }
         }
 
-        return response;
+        DisplayService.getInstance().displayResponse(response);
     }
 }

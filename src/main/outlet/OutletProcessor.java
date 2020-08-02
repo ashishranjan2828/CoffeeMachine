@@ -35,22 +35,9 @@ public class OutletProcessor{
         List<String> listOfBeverages = OutletService.getInstance().getAllBeverageRelatedToOutlet(outletDetails.getOutletName());
         List<String> listOfIngredientId = OutletService.getInstance().getAllIngredientsRelatedToOutlet(outletDetails.getOutletName());
 
-        List<Future<Response>> responseFutureList = new ArrayList<>();
 
         for(String beverageId : listOfBeverages){
-            responseFutureList.add(executorService.submit(new OutletTask(outletDetails.getOutletName(), beverageId, listOfIngredientId)));
+            executorService.submit(new OutletTask(outletDetails.getOutletName(), beverageId, listOfIngredientId));
         }
-
-        try {
-            List<Response> responseList = new ArrayList<>();
-            for (Future<Response> futureResponse : responseFutureList){
-                responseList.add(futureResponse.get());
-            }
-            DisplayService.getInstance().displayResponse(responseList);
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-
-
     }
 }
